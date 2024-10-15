@@ -1,11 +1,11 @@
 .{
     .name = "portaudio",
-    .version = "19.7.0",
+    .version = "19.7.0-1",
     .minimum_zig_version = "0.13.0",
     .dependencies = .{
         .portaudio = .{
-            .url = "https://github.com/PortAudio/portaudio/archive/refs/tags/v19.7.0.tar.gz",
-            .hash = "1220a96e42d87ae966106483e3351919c95b7c8129942c355fd173b38b2e7a0ae0a0",
+            .url = "https://github.com/PortAudio/portaudio/archive/57aa393109ec996799d3a5846c9ecb0a65b64644.tar.gz",
+            .hash = "1220b589392688b377559ee6b0d26936bf8cd529821925ff4d8fb5f2b4923779cb66",
         },
     },
     .paths = .{
