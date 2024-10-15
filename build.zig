@@ -8,13 +8,14 @@ pub const HostApi = enum {
     dsound,
     jack,
     oss,
+    pulseaudio,
     wasapi,
     wdmks,
     wmme,
 
     pub const defaults = struct {
         pub const macos: []const HostApi = &.{.coreaudio};
-        pub const linux: []const HostApi = &.{.alsa};
+        pub const linux: []const HostApi = &.{ .alsa, .pulseaudio };
         pub const windows: []const HostApi = &.{.wasapi};
     };
 };
@@ -110,6 +111,12 @@ pub fn build(b: *std.Build) !void {
                         try flags.append("-DPA_USE_OSS=1");
                         lib.addIncludePath(pa.path("src/hostapi/oss"));
                         lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_oss });
+                    },
+                    .pulseaudio => {
+                        try flags.append("-DPA_USE_PULSEAUDIO=1");
+                        lib.addIncludePath(pa.path("src/hostapi/pulseaudio"));
+                        lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_pulseaudio });
+                        lib.linkSystemLibrary("pulse");
                     },
                     else => unsupportedHostApi(t.os.tag, api),
                 }
@@ -219,6 +226,12 @@ const src_hostapi_jack = &.{
 
 const src_hostapi_oss = &.{
     "src/hostapi/oss/pa_unix_oss.c",
+};
+
+const src_hostapi_pulseaudio = &.{
+    "src/hostapi/pulseaudio/pa_linux_pulseaudio.c",
+    "src/hostapi/pulseaudio/pa_linux_pulseaudio_block.c",
+    "src/hostapi/pulseaudio/pa_linux_pulseaudio_cb.c",
 };
 
 const src_hostapi_wasapi = &.{
