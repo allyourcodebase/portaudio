@@ -93,7 +93,7 @@ pub fn build(b: *std.Build) !void {
                         try flags.append("-DPA_USE_ALSA=1");
                         lib.addIncludePath(pa.path("src/hostapi/alsa"));
                         lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_alsa });
-                        lib.linkSystemLibrary("alsa");
+                        lib.linkSystemLibrary("asound");
                     },
                     .asihpi => {
                         try flags.append("-DPA_USE_ASIHPI=1");
@@ -105,7 +105,7 @@ pub fn build(b: *std.Build) !void {
                         try flags.append("-DPA_USE_JACK=1");
                         lib.addIncludePath(pa.path("src/hostapi/jack"));
                         lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_jack });
-                        lib.linkSystemLibrary("jack2");
+                        lib.linkSystemLibrary("jack");
                     },
                     .oss => {
                         try flags.append("-DPA_USE_OSS=1");
