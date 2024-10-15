@@ -4,8 +4,8 @@
     .minimum_zig_version = "0.13.0",
     .dependencies = .{
         .portaudio = .{
-            .url = "https://github.com/PortAudio/portaudio/archive/57aa393109ec996799d3a5846c9ecb0a65b64644.tar.gz",
-            .hash = "1220b589392688b377559ee6b0d26936bf8cd529821925ff4d8fb5f2b4923779cb66",
+            .url = "git+https://github.com/PortAudio/portaudio.git?ref=master#57aa393109ec996799d3a5846c9ecb0a65b64644",
+            .hash = "12204186a16ba21dd8fc671754ef4e327ec3db7cbe5761a6c9f559fab69926f70add",
         },
     },
     .paths = .{
