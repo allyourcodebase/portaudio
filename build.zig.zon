@@ -1,7 +1,7 @@
 .{
     .name = .portaudio,
     .version = "19.7.0-2",
-    .minimum_zig_version = "0.14.0",
+    .minimum_zig_version = "0.15.0",
     .dependencies = .{
         .portaudio = .{
             .url = "git+https://github.com/PortAudio/portaudio.git?ref=master#57aa393109ec996799d3a5846c9ecb0a65b64644",

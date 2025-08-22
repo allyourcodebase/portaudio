@@ -37,20 +37,21 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const shared = b.option(bool, "shared", "Create shared library instead of static") orelse false;
-    const lib = if (shared) b.addSharedLibrary(.{
+
+    const lib = b.addLibrary(.{
         .name = "portaudio",
-        .target = target,
-        .optimize = optimize,
-    }) else b.addStaticLibrary(.{
-        .name = "portaudio",
-        .target = target,
-        .optimize = optimize,
+        .linkage = if (shared) .dynamic else .static,
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+        }),
     });
+
     lib.addIncludePath(pa.path("include"));
     lib.addIncludePath(pa.path("src/common"));
     lib.installHeadersDirectory(pa.path("include"), "", .{});
     lib.addCSourceFiles(.{ .root = pa_root, .files = src_common });
-    lib.linkLibC();
 
     const t = lib.rootModuleTarget();
 
@@ -64,7 +65,7 @@ pub fn build(b: *std.Build) !void {
         };
     };
 
-    var flags = std.ArrayList([]const u8).init(b.allocator);
+    var flags = std.array_list.Managed([]const u8).init(b.allocator);
     defer flags.deinit();
 
     switch (t.os.tag) {
