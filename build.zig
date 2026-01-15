@@ -38,20 +38,22 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
     const shared = b.option(bool, "shared", "Create shared library instead of static") orelse false;
 
-    const lib = b.addLibrary(.{
-        .name = "portaudio",
-        .linkage = if (shared) .dynamic else .static,
-        .root_module = b.createModule(.{
+    const mod = b.createModule(.{
             .target = target,
             .optimize = optimize,
             .link_libc = true,
-        }),
     });
 
-    lib.addIncludePath(pa.path("include"));
-    lib.addIncludePath(pa.path("src/common"));
+    const lib = b.addLibrary(.{
+        .name = "portaudio",
+        .linkage = if (shared) .dynamic else .static,
+        .root_module = mod,
+    });
+
+    mod.addIncludePath(pa.path("include"));
+    mod.addIncludePath(pa.path("src/common"));
     lib.installHeadersDirectory(pa.path("include"), "", .{});
-    lib.addCSourceFiles(.{ .root = pa_root, .files = src_common });
+    mod.addCSourceFiles(.{ .root = pa_root, .files = src_common });
 
     const t = lib.rootModuleTarget();
 
@@ -74,56 +76,56 @@ pub fn build(b: *std.Build) !void {
                 switch (api) {
                     .coreaudio => {
                         try flags.append("-DPA_USE_COREAUDIO=1");
-                        lib.addIncludePath(pa.path("src/hostapi/coreaudio"));
-                        lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_coreaudio });
-                        lib.linkFramework("AudioToolbox");
-                        lib.linkFramework("AudioUnit");
-                        lib.linkFramework("CoreAudio");
-                        lib.linkFramework("CoreServices");
+                        mod.addIncludePath(pa.path("src/hostapi/coreaudio"));
+                        mod.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_coreaudio });
+                        mod.linkFramework("AudioToolbox", .{});
+                        mod.linkFramework("AudioUnit", .{});
+                        mod.linkFramework("CoreAudio", .{});
+                        mod.linkFramework("CoreServices", .{});
                     },
                     else => unsupportedHostApi(t.os.tag, api),
                 }
             }
-            lib.addIncludePath(pa.path("src/os/unix"));
-            lib.addCSourceFiles(.{ .root = pa_root, .files = src_os_unix, .flags = flags.items });
+            mod.addIncludePath(pa.path("src/os/unix"));
+            mod.addCSourceFiles(.{ .root = pa_root, .files = src_os_unix, .flags = flags.items });
         },
         .linux => {
             for (host_apis) |api| {
                 switch (api) {
                     .alsa => {
                         try flags.append("-DPA_USE_ALSA=1");
-                        lib.addIncludePath(pa.path("src/hostapi/alsa"));
-                        lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_alsa });
-                        lib.linkSystemLibrary("asound");
+                        mod.addIncludePath(pa.path("src/hostapi/alsa"));
+                        mod.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_alsa });
+                        mod.linkSystemLibrary("asound", .{});
                     },
                     .asihpi => {
                         try flags.append("-DPA_USE_ASIHPI=1");
-                        lib.addIncludePath(pa.path("src/hostapi/asihpi"));
-                        lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_asihpi });
-                        lib.linkSystemLibrary("asihpi");
+                        mod.addIncludePath(pa.path("src/hostapi/asihpi"));
+                        mod.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_asihpi });
+                        mod.linkSystemLibrary("asihpi", .{});
                     },
                     .jack => {
                         try flags.append("-DPA_USE_JACK=1");
-                        lib.addIncludePath(pa.path("src/hostapi/jack"));
-                        lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_jack });
-                        lib.linkSystemLibrary("jack");
+                        mod.addIncludePath(pa.path("src/hostapi/jack"));
+                        mod.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_jack });
+                        mod.linkSystemLibrary("jack", .{});
                     },
                     .oss => {
                         try flags.append("-DPA_USE_OSS=1");
-                        lib.addIncludePath(pa.path("src/hostapi/oss"));
-                        lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_oss });
+                        mod.addIncludePath(pa.path("src/hostapi/oss"));
+                        mod.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_oss });
                     },
                     .pulseaudio => {
                         try flags.append("-DPA_USE_PULSEAUDIO=1");
-                        lib.addIncludePath(pa.path("src/hostapi/pulseaudio"));
-                        lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_pulseaudio });
-                        lib.linkSystemLibrary("pulse");
+                        mod.addIncludePath(pa.path("src/hostapi/pulseaudio"));
+                        mod.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_pulseaudio });
+                        mod.linkSystemLibrary("pulse", .{});
                     },
                     else => unsupportedHostApi(t.os.tag, api),
                 }
             }
-            lib.addIncludePath(pa.path("src/os/unix"));
-            lib.addCSourceFiles(.{ .root = pa_root, .files = src_os_unix, .flags = flags.items });
+            mod.addIncludePath(pa.path("src/os/unix"));
+            mod.addCSourceFiles(.{ .root = pa_root, .files = src_os_unix, .flags = flags.items });
         },
         .windows => {
             for (host_apis) |api| {
@@ -138,31 +140,31 @@ pub fn build(b: *std.Build) !void {
                     },
                     .dsound => {
                         try flags.append("-DPA_USE_DS=1");
-                        lib.addIncludePath(pa.path("src/hostapi/dsound"));
-                        lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_dsound });
+                        mod.addIncludePath(pa.path("src/hostapi/dsound"));
+                        mod.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_dsound });
                     },
                     .wasapi => {
                         try flags.append("-DPA_USE_WASAPI=1");
-                        lib.addIncludePath(pa.path("src/hostapi/wasapi"));
-                        lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_wasapi });
+                        mod.addIncludePath(pa.path("src/hostapi/wasapi"));
+                        mod.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_wasapi });
                     },
                     .wdmks => {
                         try flags.append("-DPA_USE_WDMKS=1");
-                        lib.addIncludePath(pa.path("src/hostapi/wdmks"));
-                        lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_wdmks });
+                        mod.addIncludePath(pa.path("src/hostapi/wdmks"));
+                        mod.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_wdmks });
                     },
                     .wmme => {
                         try flags.append("-DPA_USE_WMME=1");
-                        lib.addIncludePath(pa.path("src/hostapi/wmme"));
-                        lib.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_wmme });
+                        mod.addIncludePath(pa.path("src/hostapi/wmme"));
+                        mod.addCSourceFiles(.{ .root = pa_root, .files = src_hostapi_wmme });
                     },
                     else => unsupportedHostApi(t.os.tag, api),
                 }
             }
-            lib.addIncludePath(pa.path("src/os/win"));
-            lib.addCSourceFiles(.{ .root = pa_root, .files = src_os_win, .flags = flags.items });
-            lib.linkSystemLibrary("winmm");
-            lib.linkSystemLibrary("ole32");
+            mod.addIncludePath(pa.path("src/os/win"));
+            mod.addCSourceFiles(.{ .root = pa_root, .files = src_os_win, .flags = flags.items });
+            mod.linkSystemLibrary("winmm", .{});
+            mod.linkSystemLibrary("ole32", .{});
         },
         else => unsupportedOs(t.os.tag),
     }
